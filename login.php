@@ -23,11 +23,12 @@
 	require_once("app/Database.php");
 	$conn = (new Database())->createConnectioon();
 	if($_SERVER["REQUEST_METHOD"] == "POST"){
-
-		//var_dump($_POST);
+		echo "post";
+		var_dump($_POST);
 		if (isset($_POST["password"]) && isset($_POST["email"]) && !empty($_POST["password"])  && !empty($_POST["email"]) ){
 			//teacher
-			$sql = "SELECT * FROM users WHERE email = ?";
+			echo "teacher";
+			$sql = "SELECT * FROM teacher WHERE email = ?";
 
 			$stm = $conn->prepare($sql);
 			$stm->execute([$_POST["email"]]);
@@ -38,6 +39,7 @@
 			if (isset($user['password'])){
 			if (password_verify($_POST['password'], $user['password'])){
 				$_SESSION['username']=$_POST["email"];
+				$_SESSION['type']= "teacher";
 				$id = $user['id'];
 				//echo "successfully";
 				header("location: index.php");//TODO set page
@@ -46,9 +48,10 @@
 			}}else{
 				echo "<p style='background-color: #ffcccb; font-size: 25px'>User does not exist</p>";
 			}
-		}elseif (isset($_POST["examCode"]) && isset($_POST["firstName"]) && isset($_POST["lastName"]) && !empty($_POST["examCode"])  && !empty($_POST["firstName"]) && !empty($_POST["lastName"])){
+		}elseif (isset($_POST["examCode"]) && isset($_POST["firstName"]) && isset($_POST["lastName"]) && isset($_POST["idNumber"])){
 			//student
-			$sql = "SELECT * FROM tests WHERE code = ?";
+
+			$sql = "SELECT * FROM test WHERE shared_key = ?";
 
 			$stm = $conn->prepare($sql);
 			$stm->execute([$_POST["examCode"]]);
@@ -58,7 +61,30 @@
 			//var_dump($exam);
 			if (isset($exam['id'])){
 				//echo "successfully";
-				header("location: index.php");//TODO set page
+				echo "student";
+				$stmStudent= $conn->prepare("INSERT IGNORE INTO student (pid, name, surname) VALUES (:pid, :name, :surname)");
+				$stmStudent -> bindParam(':pid', $_POST["idNumber"]);
+				$stmStudent -> bindParam(':name', $_POST["firstName"]);
+				$stmStudent -> bindParam(':surname', $_POST["lastName"]);
+				$stmStudent->execute();
+				$_SESSION["tape"]="student";
+				$_SESSION["username"]= $_POST["firstName"];
+
+				$sql = $conn->prepare("SELECT * FROM student WHERE pid = :pid & name =:name & surname = :surname");
+				$sql -> bindParam(':pid', $_POST["idNumber"]);
+				$sql -> bindParam(':name', $_POST["firstName"]);
+				$sql -> bindParam(':surname', $_POST["lastName"]);
+				$sql->execute();
+				$student = $sql->fetch(PDO::FETCH_ASSOC);
+
+
+
+				$stmStudent= $conn->prepare("INSERT INTO student_test (student_id, test_id, completed, in_test) VALUES (:studentId, :testId, 0,0)");
+				$stmStudent -> bindParam(':studentId', $student["id"]);
+				$stmStudent -> bindParam(':testId', $exam["id"]);
+				$stmStudent->execute();
+
+				//header("location: index.php");//TODO set page
 			}else{
 				echo "<p style='background-color: #ffcccb; font-size: 25px'>Exam code does not exist</p>";
 			}
@@ -73,20 +99,23 @@
 			</div>
 			<div id="formContent">
 				<div id="f1" class="form-group">
-					<input type="text" id="code" class="form-control" placeholder="Exam code" name="examCode">
+					<input type="text" id="code" class="form-control" placeholder="Exam code" name="examCode" required>
 				</div>
 				<div id="f2" class="form-group">
-					<input type="text" id="firstName" class="form-control" placeholder="First name" name="firstName">
+					<input type="text" id="firstName" class="form-control" placeholder="First name" name="firstName" required>
 				</div>
 				<div id="f3" class="form-group">
-					<input type="text" id="lastName" class="form-control" placeholder="Last name" name="lastName">
+					<input type="text" id="lastName" class="form-control" placeholder="Last name" name="lastName" required>
+				</div>
+				<div id="f4" class="form-group">
+					<input type="text" id="IDNumber" class="form-control" placeholder="ID number" name="idNumber" required>
 				</div>
 			</div>
 				<button type="submit" class="btn btn-lg btn-info btn-block"  >Sign In</button>
 
 			</div>
 			<div class="container signin">
-    		<p>Does not have an account? <a href="register.php">Register</a>.</p>
+    		<p>Are you a teacher? Does not have an account? <a href="register.php">Register</a>.</p>
   		</div>
 		</form>
 
@@ -106,6 +135,7 @@
 				y.setAttribute("id", "examCode");
 				y.setAttribute("placeholder", "Exam code");
 				y.setAttribute("name", "examCode");
+				y.required = true;
 				parent.appendChild(y);
 
 				parent = document.getElementById("f2");
@@ -118,6 +148,7 @@
 				x.setAttribute("id", "firstName");
 				x.setAttribute("placeholder", "First name");
 				x.setAttribute("name", "firstName");
+				x.required = true;
 				parent.appendChild(x);
 
 				parent = document.getElementById("f3");
@@ -130,7 +161,21 @@
 				z.setAttribute("id", "lastName");
 				z.setAttribute("placeholder", "Last name");
 				z.setAttribute("name", "lastName");
+				z.required = true;
 				parent.appendChild(z);
+
+				parent = document.getElementById("f4");
+				while (parent.firstChild) {
+					parent.removeChild(parent.firstChild);
+				}
+				a = document.createElement("INPUT");
+				a.setAttribute("type", "text");
+				a.setAttribute("class", "form-control");
+				a.setAttribute("id", "IDNumber");
+				a.setAttribute("placeholder", "ID number");
+				a.setAttribute("name", "idNumber");
+				a.required = true;
+				parent.appendChild(a);
 			}
 			function teacher() {
 				document.getElementById("teacherBTN").style.backgroundColor = '#2C606A';
@@ -145,6 +190,7 @@
 				y.setAttribute("id", "email");
 				y.setAttribute("placeholder", "Email address");
 				y.setAttribute("name", "email");
+				y.required = true;
 				parent.appendChild(y);
 
 				parent = document.getElementById("f2");
@@ -157,8 +203,13 @@
 				x.setAttribute("id", "password");
 				x.setAttribute("placeholder", "Password");
 				x.setAttribute("name", "password");
+				x.required = true;
 				parent.appendChild(x);
 				parent = document.getElementById("f3");
+				while (parent.firstChild) {
+					parent.removeChild(parent.firstChild);
+				}
+				parent = document.getElementById("f4");
 				while (parent.firstChild) {
 					parent.removeChild(parent.firstChild);
 				}

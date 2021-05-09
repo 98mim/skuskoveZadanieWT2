@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Zadanie 2</title>
+  <title>Register</title>
 	<link crossorigin="anonymous" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css"
 		  integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" rel="stylesheet">
 	<link href="style/style.css" rel="stylesheet" type="text/css">
@@ -21,11 +21,11 @@
 				if (strcmp($_POST["psw"], $_POST["psw-repeat"])==0){
 					try {
 						$conn = (new Database())->createConnectioon();
-						$stm = $conn->prepare("INSERT INTO users (email, password) VALUES (?,?)");
+						$stm = $conn->prepare("INSERT INTO teacher (email, password) VALUES (?,?)");
 						$hash = password_hash($_POST["psw"], PASSWORD_DEFAULT);
 						$stm->execute([$_POST["email"], $hash]);
 
-						$query = $conn->prepare("SELECT id FROM users WHERE email = ?");
+						$query = $conn->prepare("SELECT id FROM teacher WHERE email = ?");
 						 $query->execute([$_POST["email"]]);
 						$id = $query->fetch();
 						$_SESSION['username']=$_POST["email"];
@@ -34,7 +34,7 @@
 						echo "Connection failed: " . $e->getMessage();
 					}
 				}else{
-					echo "hesla sa nezhoduju";
+					echo "<p class='text-center' style='background-color: #ffcccb; font-size: 25px'>Passpords are different</p>";
 				}
 			}
 		}
