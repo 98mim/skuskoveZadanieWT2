@@ -33,9 +33,15 @@ include_once ("questions/ChoiceQuestion.php");
 	//submitAnswersSA("20", "4", "cier");
 	//submitAnswersSA("21", "4", " Cierna ");
 	$ids = array("17", "18", "19");
-	var_dump($ids);echo $ids[0];
-	addQuestionToDBCh("2", "Preco to robim?", 11, "2", ["musim"=>"true", "chcem"=>"false", "nerobim"=>"false"], $ids);
+	//var_dump($ids);echo $ids[0];
+	//addQuestionToDBCh("2", "Preco to robim pytam sa?", 11, 2, ["musim"=>"true", "chcem"=>"false", "nerobim"=>"false"], $ids);
+	//addQuestionStudentCh("11");
+	//addQuestionTeacherSA("10");
+	//addQuestionTeacherSA(null);
+	//deleteQuestionCh(11);
+	//deleteQuestionSA(9);
 
+	addQuestionTeacherCh(12);
 ?>
 
 
