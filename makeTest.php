@@ -21,10 +21,10 @@ include_once ("/home/xpolakovam/public_html/skuskoveZadanieWT2/path.php");
 require_once ROOT_PATH . '/config.php';
 	include_once ROOT_PATH . '/connection/ConnectionFactory.php';
 //echo ROOT_PATH;
-include_once("questions/ShortAnswerQuestion.php");
+include_once("questions/ShortAnswerQuestion.php");include_once ("questions/ChoiceQuestion.php");
 include_once ("app/Database.php");
 include_once ("repository/SharedRepository.php");
-include_once ("questions/ChoiceQuestion.php");
+
 	$connectionFactory = new ConnectionFactory();
 	$conn = $connectionFactory->createConnection();
 //$conn = (new Database())->createConnectioon();
